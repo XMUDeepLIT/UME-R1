@@ -7,8 +7,8 @@ This repo contains the code and model for UME-R1: Exploring Reasoning-Driven Gen
 <img src="assets/Overview.png" alt="Model Overview" width="800" height="auto">
 
 ## 🗞️ Release Notes
-[2025/11/04] 🚀 We’re thrilled to release the UME-R1 series! The paper, trained models, and code are now open to the community.
-[2026/01/27] 🎉 UME-R1 has been accepted to ICLR 2026!
+- [2025/11/04] 🚀 We’re thrilled to release the UME-R1 series! The paper, trained models, and code are now open to the community.
+- [2026/01/27] 🎉 UME-R1 has been accepted to ICLR 2026!
 
 ## Model Performance
 UME-R1 significantly outperforms discriminative embeddings and can provide discriminative or generative representations as needed. Its oracle performance—selecting the best between discriminative and generative—far exceeds using either mode alone.
