@@ -36,7 +36,7 @@ from multiprocessing import Pool, cpu_count
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')
 logger = logging.getLogger(__name__)
 
-def get_embedding_idx(generated_ids_trimmed, EMBEDDING_TOKEN_ID):
+def get_gen_embedding_idx(generated_ids_trimmed, EMBEDDING_TOKEN_ID):
 
     embedding_idx = []
     # Search from the last token forward
@@ -53,9 +53,27 @@ def get_embedding_idx(generated_ids_trimmed, EMBEDDING_TOKEN_ID):
         if not embed_exist:
             embedding_idx.append(-1)
         
-        # embedding_idx.append(-1)
-
     return embedding_idx
+
+def get_disc_embedding_idx(generated_ids_trimmed, EMBEDDING_TOKEN_ID):
+
+    embedding_idx = []
+    # Search from the last token forward
+    for i, out_ids in enumerate(generated_ids_trimmed):
+        embed_exist = False
+        for j in range(len(out_ids) - 1, -1, -1):
+            if out_ids[j] == EMBEDDING_TOKEN_ID:
+                if j + 1 >= len(out_ids) - 1:
+                    embedding_idx.append(-1)
+                else:
+                    embedding_idx.append(j)
+                embed_exist = True
+                break
+        if not embed_exist:
+            embedding_idx.append(-1)
+        
+    return embedding_idx
+
 
 def normalize_reps(reps):
     # Normalize the representations
@@ -126,7 +144,7 @@ def encode_embeddings(
                         generated_ids_trimmed = [
                             out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs['input_ids'], generated_ids)
                         ]
-                        embedding_idx = get_embedding_idx(generated_ids_trimmed, processor.tokenizer.get_vocab()["<gen_emb>"])
+                        embedding_idx = get_gen_embedding_idx(generated_ids_trimmed, processor.tokenizer.get_vocab()["<gen_emb>"])
 
                         output = []
                         for i, idx in enumerate(embedding_idx):
@@ -139,7 +157,7 @@ def encode_embeddings(
                     elif mode == "disc":
                         output = model(**inputs, output_hidden_states=True, return_dict=True)
                         hidden_states = output.hidden_states[-1]
-                        embedding_idx = get_embedding_idx(inputs['input_ids'], processor.tokenizer.get_vocab()["<disc_emb>"])
+                        embedding_idx = get_disc_embedding_idx(inputs['input_ids'], processor.tokenizer.get_vocab()["<disc_emb>"])
                 
                         output = []
                         for i, idx in enumerate(embedding_idx):
@@ -160,7 +178,7 @@ def encode_embeddings(
                         generated_ids_trimmed = [
                             out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs['input_ids'], generated_ids)
                         ]
-                        embedding_idx = get_embedding_idx(generated_ids_trimmed, processor.tokenizer.get_vocab()["<gen_emb>"])
+                        embedding_idx = get_gen_embedding_idx(generated_ids_trimmed, processor.tokenizer.get_vocab()["<gen_emb>"])
                         output = []
                         for i, idx in enumerate(embedding_idx):
                             embedding_reps = hidden_states[idx][-1][i].squeeze(0)
@@ -170,7 +188,7 @@ def encode_embeddings(
                     elif mode == "disc":
                         output = model(**inputs, output_hidden_states=True, return_dict=True)
                         hidden_states = output.hidden_states[-1]
-                        embedding_idx = get_embedding_idx(inputs['input_ids'], processor.tokenizer.get_vocab()["<disc_emb>"])
+                        embedding_idx = get_disc_embedding_idx(inputs['input_ids'], processor.tokenizer.get_vocab()["<disc_emb>"])
                         output = []
                         for i, idx in enumerate(embedding_idx):
                             embedding_reps = hidden_states[i][idx]
